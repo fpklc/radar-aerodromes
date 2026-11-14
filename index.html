@@ -59,6 +59,8 @@ canvas{width:100%;height:100%;display:block}
 .chip.on{color:#032013;background:var(--g2);border-color:var(--g2)}
 .foot{margin-top:16px;font-size:10px;color:var(--dim);line-height:1.5}
 .hidden{display:none}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#0b2418;color:var(--txt);border:1px solid var(--g2);border-radius:12px;padding:10px 14px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:60;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 header{margin-bottom:8px}
 .status{display:flex;align-items:center;gap:4px;font-size:10px;letter-spacing:.12em;color:var(--dim)}
 .dot.bad{background:#ff5d5d;box-shadow:0 0 6px #ff5d5d}
@@ -607,30 +609,25 @@ function updCats(){
 }
 document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;ac.cats=ac.cats.includes(c)?ac.cats.replace(c,''):ac.cats+c;if(!ac.cats)ac.cats=c;saveAc();updCats();manualRange=false;compute();});
 $('catCOnly').onclick=()=>{ac.cats=ac.cats==='C'?'GCUP':'C';saveAc();updCats();manualRange=false;compute();};
-/* ---- landscape layout ---- */
-let forceLand=false;
-try{forceLand=localStorage.getItem('radarAD_land')==='1'}catch(e){}
+/* ---- landscape layout : suit l'orientation réelle de l'écran ---- */
+try{localStorage.removeItem('radarAD_land')}catch(e){}
+function toast(msg){let el=$('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3500);}
 function applyLayout(){
-  const autoLand=window.innerWidth>window.innerHeight*1.15&&window.innerHeight<700;
-  const land=forceLand||autoLand;
+  const land=window.innerWidth>window.innerHeight;   // jamais de mise en page paysage sur un écran vertical
   document.body.classList.toggle('land',land);
   $('landBtn').querySelector('svg').style.transform=land?'rotate(90deg)':'';
   requestAnimationFrame(resize);
 }
 $('landBtn').onclick=async()=>{
-  const nowLand=document.body.classList.contains('land');
-  forceLand=!nowLand;
-  try{localStorage.setItem('radarAD_land',forceLand?'1':'0')}catch(e){}
+  const wantLand=!(window.innerWidth>window.innerHeight);
+  let ok=false;
   try{
-    if(forceLand){
-      if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen({navigationUI:'hide'});
-      if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');
-    }else{
-      if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();
-      if(document.fullscreenElement&&document.exitFullscreen)await document.exitFullscreen();
-    }
-  }catch(e){ /* iPhone : verrouillage impossible, il suffit de tourner le téléphone */ }
-  applyLayout();
+    if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen({navigationUI:'hide'});
+    if(screen.orientation&&screen.orientation.lock){await screen.orientation.lock(wantLand?'landscape':'portrait');ok=true;}
+  }catch(e){}
+  if(!wantLand&&!ok){try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();if(document.fullscreenElement)await document.exitFullscreen();}catch(e){}}
+  setTimeout(()=>{applyLayout(); const isLand=window.innerWidth>window.innerHeight;
+    if(isLand!==wantLand)toast(wantLand?'Tourne le téléphone à l\'horizontale (rotation auto activée)':'Tourne le téléphone à la verticale');},400);
 };
 window.addEventListener('resize',applyLayout);
 window.addEventListener('orientationchange',()=>setTimeout(applyLayout,200));

@@ -151,7 +151,7 @@ details.panel summary::after{content:'▾';color:var(--dim)}details.panel[open] 
     <div class="big">
       <div><b id="tDist">—</b><span id="tDistU">KM</span></div>
       <div><b id="tBrg">—</b><span>CAP</span></div>
-      <div id="tRwyBigBox" style="display:none"><b id="tRwyBig" class="rwbig">—</b><span>PISTE</span></div>
+      <div id="tRwyBigBox" style="display:none"><b id="tRwyBig" class="rwbig">—</b><span>PISTE PRÉFÉRÉE</span></div>
     </div>
     <div class="info" id="infoBox">
       <div class="rwys" id="tRwy"></div>
@@ -282,7 +282,11 @@ function usable(rws){return rws.filter(r=>(!ac.rwMin||(r[1]!=null&&r[1]>=ac.rwMi
 const maxLen=rws=>rws.reduce((m,r)=>Math.max(m,r[1]||0),0);
 /* preferred runway: best for the wind, otherwise the longest usable one */
 function prefRw(n){ if(!n||!n.rw.length)return null; const be=bestEnd(usable(n.rw).length?usable(n.rw):n.rw); if(be)return {rw:be.rw,end:be.id};
-  const u=(usable(n.rw).length?usable(n.rw):n.rw).slice().sort((a,b)=>(b[1]||0)-(a[1]||0))[0]; return u?{rw:u[0],end:null}:null; }
+  const u=(usable(n.rw).length?usable(n.rw):n.rw).slice().sort((a,b)=>(b[1]||0)-(a[1]||0))[0]; if(!u)return null;
+  // sans vent : le QFU le plus aligné avec notre route vers le terrain (arrivée la plus directe)
+  const ends=u[0].split('/'); if(u[3]==null||ends.length<2)return {rw:u[0],end:ends[0]};
+  const diff=h=>Math.abs(((n.b-h+540)%360)-180);
+  return {rw:u[0],end:diff(u[3])<=diff((u[3]+180)%360)?ends[0]:ends[1]}; }
 /* best runway end for the entered wind */
 function bestEnd(rws){
   if(!ac.wSpd)return null; let best=null;
@@ -326,7 +330,7 @@ function renderInfo(){
   $('tDist').textContent=fmtD(t.d); $('tDistU').textContent='DISTANCE '+uLbl();
   $('tBrg').textContent=pad3(t.b);
   $('tRwyBigBox').style.display=pr?'':'none';
-  if(pr){ $('tRwyBig').textContent=pr.end||pr.rw; $('tRwyBig').classList.toggle('long',!pr.end); }
+  if(pr){ $('tRwyBig').textContent=pr.end||pr.rw.split('/')[0]; }
   const rel=heading!=null?t.b-heading:t.b;
   $('arrow').style.transform='rotate('+rel+'deg)';
   const g=t.g, box=$('target'); box.classList.remove('ok','marg','no');

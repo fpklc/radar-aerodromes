@@ -1,4 +1,4 @@
-const CACHE='radar-ad-v9';
+const CACHE='radar-ad-v10';
 const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 // installation : on force le téléchargement depuis le réseau (pas le cache HTTP du navigateur)
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});

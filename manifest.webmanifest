@@ -1,0 +1,16 @@
+{
+  "name": "Radar Aérodromes",
+  "short_name": "Radar AD",
+  "description": "Direction et distance de l'aérodrome le plus proche, façon radar. Fonctionne hors ligne.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#04110b",
+  "theme_color": "#04110b",
+  "lang": "fr",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

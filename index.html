@@ -108,6 +108,8 @@ body.land .info{margin-top:6px;padding-top:6px}body.land .glide{margin-top:6px;p
 .target.lock{border-color:#4da3ff!important;background:#071a2b;box-shadow:0 0 0 1px #4da3ff inset}
 .target.susp{border-color:#5d6b64!important;border-style:dashed;background:#0c1410}
 .target.susp .big b{color:#8fa59a;text-shadow:none}
+.rwbig{color:#4da3ff!important;text-shadow:0 0 10px rgba(77,163,255,.4)!important}.rwbig.long{font-size:20px!important;line-height:30px!important}
+.target.susp .rwbig{color:#8fa59a!important;text-shadow:none!important}
 .lockb{font-size:10px;letter-spacing:.1em;color:#9ccaff;border:1px solid #4da3ff;border-radius:6px;padding:1px 6px;margin-left:4px}
 .lockb.susp{color:#a7b3ad;border-color:#5d6b64}
 .rw.best{border-color:#4da3ff!important;color:#9ccaff!important;background:#0b2238}
@@ -144,6 +146,7 @@ details.panel summary::after{content:'▾';color:var(--dim)}details.panel[open] 
     <div class="big">
       <div><b id="tDist">—</b><span id="tDistU">KM</span></div>
       <div><b id="tBrg">—</b><span>CAP</span></div>
+      <div id="tRwyBigBox" style="display:none"><b id="tRwyBig" class="rwbig">—</b><span>PISTE</span></div>
     </div>
     <div class="info" id="infoBox">
       <div class="rwys" id="tRwy"></div>
@@ -159,7 +162,6 @@ details.panel summary::after{content:'▾';color:var(--dim)}details.panel[open] 
   </div>
 
   <div class="rest">
-    <div class="row" id="startRow"><button class="btn primary" id="startBtn">▶ Démarrer GPS + boussole</button></div>
     <div class="manual hidden" id="manual">
       <p id="manualMsg">Position GPS indisponible ici. Saisis des coordonnées (ex. <b>48.8566, 2.3522</b>) :</p>
       <input id="coords" inputmode="decimal" placeholder="latitude, longitude" autocomplete="off">
@@ -225,7 +227,7 @@ details.panel summary::after{content:'▾';color:var(--dim)}details.panel[open] 
 
     <h3>Vent</h3>
     <div class="form">
-      <p class="hint" style="grid-column:1/span 2">Glisse le doigt sur le radar <b>dans le sens où souffle le vent</b> : la direction donne le vent, la longueur sa force (toute la largeur du radar = 30 kt). Double-tap sur le radar pour l'effacer. Il sert au rayon de plané et à la piste conseillée.</p>
+      <p class="hint" style="grid-column:1/span 2">Glisse le doigt sur le radar <b>dans le sens où souffle le vent</b> : la direction donne le vent, la longueur sa force (toute la largeur du radar = 30 kt). Touche l'indicateur de vent (en haut à gauche du radar) ou double-tap pour l'effacer. Il sert au rayon de plané et à la piste conseillée.</p>
       <div class="full sens" id="windSum">Pas de vent saisi</div>
     </div>
 
@@ -323,6 +325,8 @@ function renderInfo(){
   $('tWind').innerHTML=be?`Piste conseillée <b>${be.id}</b> · ${be.hw>=0?'face':'arrière'} ${Math.abs(Math.round(be.hw))} kt · travers ${Math.round(be.xw)} kt`:'';$('tWind').style.display=be?'':'none';
   $('tDist').textContent=fmtD(t.d); $('tDistU').textContent='DISTANCE '+uLbl();
   $('tBrg').textContent=pad3(t.b);
+  const showRw=locked&&pr; $('tRwyBigBox').style.display=showRw?'':'none';
+  if(showRw){ $('tRwyBig').textContent=lockSusp?'—':(pr.end||pr.rw); $('tRwyBig').classList.toggle('long',!pr.end); }
   const rel=heading!=null?t.b-heading:t.b;
   $('arrow').style.transform='rotate('+rel+'deg)';
   const g=t.g, box=$('target'); box.classList.remove('ok','marg','no');
@@ -515,9 +519,10 @@ function onOrient(e){
   lastH=h;heading=h;compassOk=true;setCmp('on','Boussole '+pad3(h)+'°');
   renderInfo();
 }
-async function startCompass(){
+async function startCompass(auto){
   try{
     if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+      if(auto){setCmp('warn','Boussole : touche ⟳ pour l\'autoriser');return}
       const r=await DeviceOrientationEvent.requestPermission();
       if(r!=='granted'){setCmp('warn','Boussole refusée');return}
     }
@@ -530,9 +535,10 @@ async function startCompass(){
 let wake=null;
 async function keepAwake(){try{if('wakeLock' in navigator)wake=await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&wake)keepAwake()});
-function startSensors(){startCompass();startGps();keepAwake();$('startRow').classList.add('hidden');}
-$('startBtn').onclick=startSensors;
-$('refreshBtn').onclick=()=>{const b=$('refreshBtn');b.classList.remove('spin');void b.offsetWidth;b.classList.add('spin');lastH=null;startSensors();};
+function startSensors(auto){startCompass(auto);startGps();keepAwake();}
+/* démarrage automatique ; sur iPhone la boussole demande un appui sur ⟳ */
+document.addEventListener('pointerdown',()=>{if(!wake)keepAwake()},{once:true});
+$('refreshBtn').onclick=()=>{const b=$('refreshBtn');b.classList.remove('spin');void b.offsetWidth;b.classList.add('spin');lastH=null;startSensors(false);};
 $('setBtn').onclick=()=>{$('settings').classList.remove('hidden');fillAc();updWind();};
 $('setClose').onclick=()=>$('settings').classList.add('hidden');
 $('settings').addEventListener('click',e=>{if(e.target.id==='settings')$('settings').classList.add('hidden')});
@@ -551,6 +557,8 @@ cv.addEventListener('pointermove',e=>{
 cv.addEventListener('pointerup',e=>{
   if(!swipe)return; const p=swipe.prev; swipe=null;
   if(p){ac.wDir=Math.round((p.to+180)%360);ac.wSpd=p.spd;updWind();compute();return;}
+  const r=cv.getBoundingClientRect(), tx=e.clientX-r.left, ty=e.clientY-r.top;
+  if(ac.wSpd&&tx<120&&ty<52){ac.wSpd=0;updWind();compute();lastTap=0;return;} // touche sur l'indicateur de vent = effacer
   const now=Date.now(); if(now-lastTap<350){ac.wSpd=0;updWind();compute();lastTap=0;} else lastTap=now;
 });
 cv.addEventListener('pointercancel',()=>{swipe=null});
@@ -632,10 +640,8 @@ $('altGps').onclick=()=>{ac.altSrc='gps';saveAc();fillAc();compute()};
 $('altMan').onclick=()=>{ac.altSrc='man';saveAc();fillAc();compute()};
 fillAc();
 // Auto-start GPS if permission already granted
-if(navigator.permissions&&navigator.permissions.query){navigator.permissions.query({name:'geolocation'}).then(r=>{if(r.state==='granted')startGps()}).catch(()=>{})}
-setTimeout(()=>{if(!pos)showManual()},1500);
-try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){const hadSW=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadSW)location.reload()});navigator.serviceWorker.register('sw.js').then(()=>{const el=document.getElementById('offline');if(el)el.textContent='✓ Disponible hors ligne';}).catch(()=>{})}}catch(e){}
-
+startSensors(true);
+setTimeout(()=>{if(!pos)showManual()},4000);
 </script>
 </body>
 

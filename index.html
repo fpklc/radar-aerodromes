@@ -59,6 +59,25 @@ canvas{width:100%;height:100%;display:block}
 .chip.on{color:#032013;background:var(--g2);border-color:var(--g2)}
 .foot{margin-top:16px;font-size:10px;color:var(--dim);line-height:1.5}
 .hidden{display:none}
+header{margin-bottom:8px}
+.status{display:flex;align-items:center;gap:4px;font-size:10px;letter-spacing:.12em;color:var(--dim)}
+.dot.bad{background:#ff5d5d;box-shadow:0 0 6px #ff5d5d}
+.tools{display:flex;gap:8px}
+.ibtn{width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:var(--panel);color:var(--g);border:1px solid var(--line);border-radius:12px;cursor:pointer;font:inherit;font-size:18px;padding:0}
+.ibtn:active{background:#0c2a1b}
+.ibtn.spin svg{animation:spin 1s linear}
+@keyframes spin{to{transform:rotate(360deg)}}
+.radar canvas{touch-action:none}
+.sheet{position:fixed;inset:0;background:rgba(2,8,5,.72);z-index:50;display:flex;justify-content:center;align-items:flex-end}
+.sheet.hidden{display:none}
+.sheetin{background:var(--bg);border:1px solid var(--line);border-bottom:none;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow-y:auto;padding:12px 14px calc(24px + env(safe-area-inset-bottom))}
+.sheethd{display:flex;justify-content:space-between;align-items:center;position:sticky;top:-12px;background:var(--bg);padding:6px 0 10px;z-index:1}
+.sheethd b{color:var(--g);letter-spacing:.15em;font-size:14px}
+.sheet h3{font-size:12px;color:var(--g);letter-spacing:.1em;margin:16px 0 8px;font-weight:600}
+.sheet h3 span{color:var(--dim);font-weight:400}
+.flbl{font-size:10px;color:var(--dim);letter-spacing:.08em;margin-bottom:6px}
+.sens{font-size:12px;color:var(--txt)}
+body.land .sheetin{max-width:640px}
 .hbtn{background:var(--panel);color:var(--g);border:1px solid var(--line);border-radius:8px;font:inherit;font-size:11px;padding:6px 8px;cursor:pointer;white-space:nowrap}
 .hleft{display:flex;align-items:center;gap:8px}
 .catgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -103,24 +122,28 @@ details.panel summary::after{content:'▾';color:var(--dim)}details.panel[open] 
 <body>
 <div class="wrap">
   <header>
-    <div class="hleft"><h1>◎ RADAR AÉRODROMES</h1><button class="hbtn" id="landBtn">⇆ Paysage</button></div>
-    <div class="status"><div><span class="dot" id="gpsDot"></span><span id="gpsTxt">GPS —</span></div><div><span class="dot" id="cmpDot"></span><span id="cmpTxt">Boussole —</span></div></div>
+    <div class="status" id="statusBar"><span class="dot" id="gpsDot"></span><span>GPS</span><span class="dot" id="cmpDot" style="margin-left:10px"></span><span>CAP</span></div>
+    <div class="tools">
+      <button class="ibtn" id="refreshBtn" aria-label="Relancer GPS et boussole" title="Relancer GPS et boussole"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M5.6 5.6a9 9 0 0 1 12.2-.4M18.4 18.4a9 9 0 0 1-12.2.4"/><path d="M17.8 2.6v2.6h-2.6M6.2 21.4v-2.6h2.6"/></svg></button>
+      <button class="ibtn" id="landBtn" aria-label="Portrait / paysage" title="Portrait / paysage"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="16" rx="2" id="rotPhone"/><path d="M3 15a9 9 0 0 0 6 6.5"/><path d="M6.5 22l2.6-.6-.6-2.6"/></svg></button>
+      <button class="ibtn" id="setBtn" aria-label="Réglages" title="Réglages"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
   </header>
 
   <div class="target" id="target">
     <div class="tname" id="tName">En attente de position…</div>
-    <div class="arrowbox"><svg viewBox="0 0 60 60" id="arrow"><path d="M30 4 L44 46 L30 38 L16 46 Z" fill="#36f59a"/></svg><small id="arrowLbl">CAP VRAI</small></div>
+    <div class="arrowbox"><svg viewBox="0 0 60 60" id="arrow"><path d="M30 4 L44 46 L30 38 L16 46 Z" fill="#36f59a"/></svg></div>
     <div class="tcode" id="tCode">—</div>
     <div class="big">
-      <div><b id="tDist">—</b><span id="tDistU">DISTANCE</span></div>
-      <div><b id="tBrg">—</b><span>CAP °</span></div>
+      <div><b id="tDist">—</b><span id="tDistU">KM</span></div>
+      <div><b id="tBrg">—</b><span>CAP</span></div>
     </div>
     <div class="info" id="infoBox">
       <div class="rwys" id="tRwy"></div>
       <div class="freqs" id="tFreq"></div>
       <div class="wnd" id="tWind"></div>
     </div>
-    <div class="glide" id="glideBox"><div id="glideTxt">Plané : renseigne ton avion et ton altitude</div><span class="pill na" id="glidePill">—</span></div>
+    <div class="glide" id="glideBox"><div id="glideTxt">Plané : altitude inconnue</div><span class="pill na" id="glidePill">—</span></div>
   </div>
 
   <div class="radar">
@@ -129,36 +152,28 @@ details.panel summary::after{content:'▾';color:var(--dim)}details.panel[open] 
   </div>
 
   <div class="rest">
-  <div class="row">
-    <button class="btn primary" id="startBtn">▶ Démarrer GPS + boussole</button>
-  </div>
-  <div class="toggles">
-    <button class="chip on" id="tKm">km</button>
-    <button class="chip" id="tNm">NM</button>
-    <button class="chip" id="tAuto">Cible : plus proche</button>
-  </div>
-
-  <details class="panel" id="fltPanel">
-    <summary><span>⚙ Filtres aérodromes — <span id="fltSum"></span></span></summary>
-    <div class="form">
-      <div class="full"><div style="font-size:10px;color:var(--dim);letter-spacing:.08em;margin-bottom:6px">TYPES DE TERRAINS AFFICHÉS</div>
-        <div class="catgrid">
-          <button class="chip" data-cat="G">Aérodromes<small>aviation générale</small></button>
-          <button class="chip" data-cat="C">Aéroports commerciaux<small>lignes régulières</small></button>
-          <button class="chip" data-cat="U">Terrains ULM<small>bases ULM / paramoteur</small></button>
-          <button class="chip" data-cat="P">Planeurs<small>vol à voile</small></button>
-          <button class="chip" data-cat="H">Héliports<small>hélisurfaces</small></button>
-          <button class="chip" id="catCOnly">Commerciaux uniquement<small>raccourci</small></button>
-        </div></div>
-      <label>LONGUEUR DE PISTE MINI (m)<input id="acRw" type="number" inputmode="numeric" step="50" min="0" max="4000" placeholder="0 = pas de minimum"></label>
-      <label>REVÊTEMENT<select id="acGrass"><option value="1">Dur, herbe ou terre</option><option value="0">Piste en dur uniquement</option></select></label>
-      <label class="full">TERRAINS SANS DONNÉES DE PISTE<select id="acUnk"><option value="1">Afficher (marqués « pistes ? »)</option><option value="0">Masquer</option></select></label>
-      <p class="hint">La longueur mini et le revêtement s'appliquent aux pistes connues : un terrain dont aucune piste ne convient est retiré du radar, de la liste et du calcul de plané. Réglages mémorisés avec ton profil avion.</p>
+    <div class="row" id="startRow"><button class="btn primary" id="startBtn">▶ Démarrer GPS + boussole</button></div>
+    <div class="manual hidden" id="manual">
+      <p id="manualMsg">Position GPS indisponible ici. Saisis des coordonnées (ex. <b>48.8566, 2.3522</b>) :</p>
+      <input id="coords" inputmode="decimal" placeholder="latitude, longitude" autocomplete="off">
+      <div class="row"><button class="btn" id="goCoords">Valider la position</button></div>
     </div>
-  </details>
+    <div class="list" id="list"></div>
+  </div>
+</div>
 
-  <details class="panel" id="acPanel">
-    <summary><span>✈ Mon avion &amp; plané — <span id="acSum">Cessna 172</span></span></summary>
+<div class="sheet hidden" id="settings" role="dialog" aria-label="Réglages">
+  <div class="sheetin">
+    <div class="sheethd"><b>Réglages</b><button class="ibtn" id="setClose" aria-label="Fermer">✕</button></div>
+
+    <h3>Affichage</h3>
+    <div class="form">
+      <div class="full"><div class="flbl">UNITÉ DE DISTANCE</div><div class="seg"><button class="chip" id="uKm">km</button><button class="chip" id="uNm">NM</button></div></div>
+      <div class="full"><div class="flbl">CIBLE AUTOMATIQUE</div><div class="seg"><button class="chip" id="mNear">Plus proche</button><button class="chip" id="mGlide">Meilleur plané</button></div></div>
+      <div class="full"><div class="flbl">CAPTEURS</div><div class="sens"><span id="gpsTxt">GPS —</span> · <span id="cmpTxt">Boussole —</span></div></div>
+    </div>
+
+    <h3>✈ Avion — <span id="acSum"></span></h3>
     <div class="form">
       <label class="full">PROFIL
         <select id="acPreset">
@@ -175,25 +190,35 @@ details.panel summary::after{content:'▾';color:var(--dim)}details.panel[open] 
       <label>FINESSE (x:1)<input id="acF" type="number" inputmode="decimal" step="0.5" min="2" max="70"></label>
       <label>VITESSE PLANÉ (kt)<input id="acV" type="number" inputmode="numeric" min="20" max="200"></label>
       <label>MARGE ARRIVÉE (ft sol)<input id="acM" type="number" inputmode="numeric" step="100" min="0" max="5000"></label>
-      <div class="full"><div style="font-size:10px;color:var(--dim);letter-spacing:.08em;margin-bottom:4px">ALTITUDE</div>
-        <div class="seg"><button class="chip" id="altGps">GPS</button><button class="chip" id="altMan">Manuelle (QNH)</button></div></div>
+      <div class="full"><div class="flbl">ALTITUDE</div><div class="seg"><button class="chip" id="altGps">GPS</button><button class="chip" id="altMan">Manuelle (QNH)</button></div></div>
       <label>ALTITUDE MANUELLE (ft)<input id="acAlt" type="number" inputmode="numeric" step="100"></label>
       <label>ALTITUDE GPS<input id="acAltGps" disabled value="—"></label>
-      <label>VENT — DIRECTION (° d'où il vient)<input id="wDir" type="number" inputmode="numeric" min="0" max="360"></label>
-      <label>VENT — FORCE (kt)<input id="wSpd" type="number" inputmode="numeric" min="0" max="100"></label>
-      <p class="hint">Valeurs de profil indicatives : prends celles de ton manuel de vol. La marge est la hauteur minimale voulue au-dessus du terrain à l'arrivée (ex. 1000 ft pour s'intégrer). L'altitude GPS est approximative (±50 ft ou plus) : en vol, préfère l'altimètre calé QNH.</p>
+      <p class="hint">Valeurs indicatives : prends celles de ton manuel de vol. Marge = hauteur minimale voulue au-dessus du terrain à l'arrivée. L'altitude GPS est approximative : en vol, préfère l'altimètre calé QNH.</p>
     </div>
-  </details>
 
-  <div class="manual hidden" id="manual">
-    <p id="manualMsg">Position GPS indisponible ici. Saisis des coordonnées (ex. <b>48.8566, 2.3522</b>) :</p>
-    <input id="coords" inputmode="decimal" placeholder="latitude, longitude" autocomplete="off">
-    <div class="row"><button class="btn" id="goCoords">Valider la position</button></div>
-  </div>
+    <h3>⚙ Terrains — <span id="fltSum"></span></h3>
+    <div class="form">
+      <div class="full"><div class="flbl">TYPES AFFICHÉS</div>
+        <div class="catgrid">
+          <button class="chip" data-cat="G">Aérodromes<small>aviation générale</small></button>
+          <button class="chip" data-cat="C">Aéroports commerciaux<small>lignes régulières</small></button>
+          <button class="chip" data-cat="U">Terrains ULM<small>bases ULM / paramoteur</small></button>
+          <button class="chip" data-cat="P">Planeurs<small>vol à voile</small></button>
+          <button class="chip" data-cat="H">Héliports<small>hélisurfaces</small></button>
+          <button class="chip" id="catCOnly">Commerciaux uniquement<small>raccourci</small></button>
+        </div></div>
+      <label>PISTE MINI (m)<input id="acRw" type="number" inputmode="numeric" step="50" min="0" max="4000" placeholder="aucune"></label>
+      <label>REVÊTEMENT<select id="acGrass"><option value="1">Dur, herbe, terre</option><option value="0">Dur uniquement</option></select></label>
+      <label class="full">TERRAINS SANS DONNÉES DE PISTE<select id="acUnk"><option value="1">Afficher (« pistes ? »)</option><option value="0">Masquer</option></select></label>
+    </div>
 
-  <div class="list" id="list"></div>
+    <h3>Vent</h3>
+    <div class="form">
+      <p class="hint" style="grid-column:1/span 2">Glisse le doigt sur le radar <b>dans le sens où souffle le vent</b> : la direction donne le vent, la longueur sa force (≈ 1 cm = 10 kt). Double-tap sur le radar pour l'effacer. Il sert au rayon de plané et à la piste conseillée.</p>
+      <div class="full sens" id="windSum">Pas de vent saisi</div>
+    </div>
 
-  <div class="foot"><div id="offline" style="color:#1fae6a;margin-bottom:6px"></div>Données : OurAirports (domaine public, contributif — pistes et fréquences parfois absentes ou obsolètes : vérifier sur la carte VAC/SIA), aérodromes d'Europe — <span id="count"></span> terrains. Caps vrais (non magnétiques). Plané : calcul en air calme corrigé du vent saisi, sans relief ni obstacles, sans virages ni perte d'altitude en approche. Outil d'aide à l'orientation, ne remplace pas la navigation officielle (SIA, cartes OACI). Catégories ULM / planeurs déduites du nom du terrain : classement approximatif.</div>
+    <p class="foot"><span id="offline" style="color:#1fae6a;display:block;margin-bottom:6px"></span>Données : OurAirports (domaine public, contributif — pistes et fréquences parfois absentes ou obsolètes : vérifier sur la carte VAC/SIA), <span id="count"></span> terrains en Europe. Caps vrais. Catégories ULM / planeurs déduites du nom du terrain. Plané : sans relief ni obstacles, sans virages ni circuit d'approche. Outil d'aide à l'orientation, ne remplace pas la navigation officielle.</p>
   </div>
 </div>
 
@@ -205,6 +230,7 @@ let pos=null, heading=null, unit='km', mode='near', selected=null, near=[], rang
 const PRESETS={c172:['Cessna 172',9,68],c152:['Cessna 152',8,60],pa28:['Piper PA-28',9,73],dr400:['Robin DR400',9,70],ulm:['ULM 3 axes',10,60],glider:['Planeur club',30,50]};
 let ac={preset:'c172',name:'Cessna 172',f:9,v:68,m:1000,rwMin:0,grass:1,unk:1,cats:'GCUP',altSrc:'gps',alt:3000,wDir:0,wSpd:0};
 try{const s=JSON.parse(localStorage.getItem('radarAD_ac')||'null');if(s)ac=Object.assign(ac,s);}catch(e){}
+ac.wSpd=0; /* le vent se saisit au doigt à chaque vol */
 function saveAc(){try{localStorage.setItem('radarAD_ac',JSON.stringify(ac))}catch(e){}}
 const curAlt=()=>ac.altSrc==='gps'?gpsAlt:(isFinite(ac.alt)?ac.alt:null);
 /* factor GS/TAS along a track, with wind */
@@ -233,7 +259,7 @@ function brg(a1,o1,a2,o2){const p1=a1*D2R,p2=a2*D2R,dO=(o2-o1)*D2R;const y=Math.
 const fmtD=km=>{const v=unit==='km'?km:km/1.852;return v<10?v.toFixed(1):Math.round(v).toString()};
 const uLbl=()=>unit==='km'?'KM':'NM';
 const pad3=n=>String(Math.round(n)%360).padStart(3,'0');
-const SURF={D:'dur',H:'herbe',T:'terre',E:'eau',N:'neige','?':''};
+const SURF={D:'Dur',H:'Herbe',T:'Terre',E:'Eau',N:'Neige','?':''};
 /* runway filter: usable runways for this aircraft */
 function usable(rws){return rws.filter(r=>(!ac.rwMin||(r[1]!=null&&r[1]>=ac.rwMin))&&(ac.grass||r[2]==='D'||r[2]==='?'))}
 const maxLen=rws=>rws.reduce((m,r)=>Math.max(m,r[1]||0),0);
@@ -276,14 +302,13 @@ function renderInfo(){
   $('tCode').textContent=t.code+(t.elev!=null?' · altitude '+t.elev+' ft':'');
   const be=bestEnd(t.rw), urw=usable(t.rw);
   $('tRwy').innerHTML='<span class="lbl">PISTES</span>'+(t.cat==='H'?'<span class="rw">Héliport</span>':t.rw.length?t.rw.map(r=>{const ok=urw.includes(r);const isB=be&&be.rw===r[0];
-    return `<span class="rw${isB?' best':''}" style="${ok?'':'opacity:.4;text-decoration:line-through'}">${r[0]} <small>${r[1]!=null?r[1]+' m':'? m'}${SURF[r[2]]?' '+SURF[r[2]]:''}${r[3]!=null?' · axe '+pad3(r[3])+'°/'+pad3((r[3]+180)%360)+'°':''}</small></span>`}).join(''):'<span class="wnd">non renseignées</span>');
+    return `<span class="rw${isB?' best':''}" style="${ok?'':'opacity:.4;text-decoration:line-through'}">${r[0]} <small>${r[1]!=null?r[1]+'m':''}${SURF[r[2]]?' '+SURF[r[2]]:''}</small></span>`}).join(''):'<span class="wnd">non renseignées</span>');
   $('tFreq').innerHTML='<span class="lbl">FRÉQ.</span>'+(t.fq.length?t.fq.map(f=>`<span class="fq">${f[0]} <b>${f[1].toFixed(3)}</b></span>`).join(' · '):'<span class="wnd">non renseignée — vérifier carte VAC / SIA</span>');
-  $('tWind').innerHTML=be?`Avec le vent ${pad3(ac.wDir)}°/${Math.round(ac.wSpd)} kt : piste <b>${be.id}</b> · ${be.hw>=0?'face':'arrière'} ${Math.abs(Math.round(be.hw))} kt · travers ${Math.round(be.xw)} kt`:(ac.wSpd?'':'Saisis le vent dans « Mon avion » pour la piste conseillée');
+  $('tWind').innerHTML=be?`Vent ${pad3(ac.wDir)}° ${Math.round(ac.wSpd)} kt → piste <b>${be.id}</b>`:'';$('tWind').style.display=be?'':'none';
   $('tDist').textContent=fmtD(t.d); $('tDistU').textContent='DISTANCE '+uLbl();
   $('tBrg').textContent=pad3(t.b);
   const rel=heading!=null?t.b-heading:t.b;
   $('arrow').style.transform='rotate('+rel+'deg)';
-  $('arrowLbl').textContent=heading!=null?'DEVANT VOUS':'CAP VRAI (N↑)';
   const g=t.g, box=$('target'); box.classList.remove('ok','marg','no');
   if(!g){$('glideTxt').innerHTML=curAlt()==null?'Plané : altitude inconnue — <b>saisis-la</b> dans « Mon avion »':'Plané : profil avion incomplet';$('glidePill').className='pill na';$('glidePill').textContent='—';return}
   box.classList.add(g.st);
@@ -293,7 +318,7 @@ function renderInfo(){
   $('glideTxt').innerHTML=`Arrivée <b>${arrTxt}</b> sol${g.elevKnown?'':' (alt. terrain ?)'}${isFinite(g.min)?' · <b>'+Math.round(g.min)+' min</b>':''}${ac.wSpd?' · Vs <b>'+Math.round(g.gs)+' kt</b>':''}`;
 }
 function renderList(){
-  $('list').innerHTML=near.slice(0,8).map((n,i)=>`<div class="item ${n.code===selected?'sel':''}" data-c="${n.code}"><div class="n">${i+1}</div><div class="nm"><em>${n.code}</em>${n.name.replace(/</g,'&lt;')}<small style="display:block;color:var(--dim);font-size:11px">${n.cat==='H'?'héliport':n.rw.length?n.rw[0][0]+' '+(n.rw[0][1]!=null?n.rw[0][1]+' m':'')+(SURF[n.rw[0][2]]?' '+SURF[n.rw[0][2]]:''):'pistes ?'}${n.fq.length?' · '+n.fq[0][0]+' '+n.fq[0][1].toFixed(3):''}</small></div><div class="d">${fmtD(n.d)} ${uLbl().toLowerCase()}<small>${pad3(n.b)}°${n.g&&isFinite(n.g.arr)?' · '+(n.g.arr>=0?'+':'')+Math.round(n.g.arr/100)*100+' ft':''}</small></div><div class="st ${n.g?n.g.st:'na'}">${n.g?{ok:'✓',marg:'!',no:'✗'}[n.g.st]:'·'}</div></div>`).join('');
+  $('list').innerHTML=near.slice(0,8).map((n,i)=>`<div class="item ${n.code===selected?'sel':''}" data-c="${n.code}"><div class="n">${i+1}</div><div class="nm"><em>${n.code}</em>${n.name.replace(/</g,'&lt;')}<small style="display:block;color:var(--dim);font-size:11px">${n.cat==='H'?'héliport':n.rw.length?n.rw[0][0]+' '+(n.rw[0][1]!=null?n.rw[0][1]+'m':'')+(SURF[n.rw[0][2]]?' '+SURF[n.rw[0][2]]:''):'pistes ?'}${n.fq.length?' · '+n.fq[0][0]+' '+n.fq[0][1].toFixed(3):''}</small></div><div class="d">${fmtD(n.d)} ${uLbl().toLowerCase()}<small>${pad3(n.b)}°${n.g&&isFinite(n.g.arr)?' · '+(n.g.arr>=0?'+':'')+Math.round(n.g.arr/100)*100+' ft':''}</small></div><div class="st ${n.g?n.g.st:'na'}">${n.g?{ok:'✓',marg:'!',no:'✗'}[n.g.st]:'·'}</div></div>`).join('');
 }
 $('list').addEventListener('click',e=>{const it=e.target.closest('.item');if(!it)return;selected=it.dataset.c;mode='manual';manualRange=false;updChips();compute();});
 
@@ -356,8 +381,20 @@ function draw(now){
   }
   // own aircraft
   ctx.save();ctx.translate(c,c);if(heading==null){}ctx.fillStyle='#d9fbe9';ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(6,7);ctx.lineTo(0,3);ctx.lineTo(-6,7);ctx.closePath();ctx.fill();ctx.restore();
-  ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font='10px ui-monospace,Menlo,monospace';ctx.fillStyle='rgba(95,143,119,.9)';
-  ctx.fillText(heading!=null?'CAP '+pad3(heading)+'° · HDG UP':'NORD EN HAUT',4,12);
+  // wind arrow (set) or swipe preview
+  const wv=swipe?swipe.prev:(ac.wSpd?{to:(ac.wDir+180)%360,spd:ac.wSpd}:null);
+  if(wv){
+    const a=(wv.to-rot)*D2R, L=Math.min(R*.85,Math.max(R*.25,wv.spd/50*R*.85));
+    const x0=c-Math.sin(a)*L/2,y0=c+Math.cos(a)*L/2,x1=c+Math.sin(a)*L/2,y1=c-Math.cos(a)*L/2;
+    ctx.strokeStyle=swipe?'rgba(120,200,255,.95)':'rgba(120,200,255,.7)';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=3;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.sin(a-0.45)*14,y1+Math.cos(a-0.45)*14);ctx.lineTo(x1-Math.sin(a+0.45)*14,y1+Math.cos(a+0.45)*14);ctx.closePath();ctx.fill();
+    ctx.lineCap='butt';ctx.font='bold 12px ui-monospace,Menlo,monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    const lbl=pad3((wv.to+180)%360)+'° '+Math.round(wv.spd)+' kt';
+    ctx.fillStyle='rgba(3,13,8,.75)';const tw=ctx.measureText(lbl).width+10;ctx.fillRect(x0-tw/2,y0-9+(y0>c?14:-14),tw,18);
+    ctx.fillStyle='rgba(160,220,255,1)';ctx.fillText(lbl,x0,y0+(y0>c?14:-14));
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  }
   requestAnimationFrame(draw);
 }
 resize();requestAnimationFrame(draw);
@@ -401,7 +438,7 @@ function tickStatus(){
   const spd=gpsSpd!=null&&gpsSpd>1?' · '+Math.round(gpsSpd)+' kt':'';
   const ageTxt=age<1.5?'':' · '+Math.round(age)+' s';
   setGps(age<=3?'on':'warn','GPS ±'+Math.round(lastAcc||0)+' m'+spd+ageTxt);
-  if(age>10)setGps('warn','GPS perdu · '+Math.round(age)+' s');
+  if(age>10)setGps('bad','GPS perdu · '+Math.round(age)+' s');
 }
 setInterval(()=>{
   if(document.visibilityState!=='visible')return;
@@ -440,7 +477,30 @@ async function startCompass(){
 let wake=null;
 async function keepAwake(){try{if('wakeLock' in navigator)wake=await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&wake)keepAwake()});
-$('startBtn').onclick=()=>{startCompass();startGps();keepAwake();$('startBtn').textContent='↻ Relancer les capteurs';$('startBtn').classList.remove('primary')};
+function startSensors(){startCompass();startGps();keepAwake();$('startRow').classList.add('hidden');}
+$('startBtn').onclick=startSensors;
+$('refreshBtn').onclick=()=>{const b=$('refreshBtn');b.classList.remove('spin');void b.offsetWidth;b.classList.add('spin');lastH=null;startSensors();};
+$('setBtn').onclick=()=>{$('settings').classList.remove('hidden');fillAc();updWind();};
+$('setClose').onclick=()=>$('settings').classList.add('hidden');
+$('settings').addEventListener('click',e=>{if(e.target.id==='settings')$('settings').classList.add('hidden')});
+/* ---- wind by swipe on radar ---- */
+let swipe=null, lastTap=0;
+const PX_PER_CM=63, KT_PER_CM=10;
+function updWind(){$('windSum').textContent=ac.wSpd?('Vent actuel : '+pad3(ac.wDir)+'° · '+Math.round(ac.wSpd)+' kt'):'Pas de vent saisi';}
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);swipe={x:e.clientX,y:e.clientY,prev:null};});
+cv.addEventListener('pointermove',e=>{
+  if(!swipe)return; const dx=e.clientX-swipe.x, dy=e.clientY-swipe.y, len=Math.hypot(dx,dy);
+  if(len<15){swipe.prev=null;return}
+  const rot=heading!=null?heading:0; const to=((Math.atan2(dx,-dy)/D2R)+rot+360)%360;
+  const spd=Math.min(60,Math.max(5,Math.round(len/PX_PER_CM*KT_PER_CM/5)*5));
+  swipe.prev={to,spd};
+});
+cv.addEventListener('pointerup',e=>{
+  if(!swipe)return; const p=swipe.prev; swipe=null;
+  if(p){ac.wDir=Math.round((p.to+180)%360);ac.wSpd=p.spd;updWind();compute();return;}
+  const now=Date.now(); if(now-lastTap<350){ac.wSpd=0;updWind();compute();lastTap=0;} else lastTap=now;
+});
+cv.addEventListener('pointercancel',()=>{swipe=null});
 $('goCoords').onclick=()=>{
   const m=$('coords').value.replace(/[;]/g,',').match(/(-?\d+(?:[.,]\d+)?)\s*[, ]\s*(-?\d+(?:[.,]\d+)?)/);
   if(!m){$('coords').style.borderColor='#ffbf3c';return}
@@ -451,28 +511,29 @@ $('goCoords').onclick=()=>{
 $('coords').addEventListener('keydown',e=>{if(e.key==='Enter')$('goCoords').click()});
 
 /* ---- toggles ---- */
-function updChips(){$('tKm').classList.toggle('on',unit==='km');$('tNm').classList.toggle('on',unit==='nm');
-  $('tAuto').classList.toggle('on',mode!=='manual');$('tAuto').textContent={near:'Cible : plus proche',glide:'Cible : meilleur plané',manual:'Cible : manuelle'}[mode];}
-$('tKm').onclick=()=>{unit='km';save();updChips();renderInfo();renderList()};
-$('tNm').onclick=()=>{unit='nm';save();updChips();renderInfo();renderList()};
-$('tAuto').onclick=()=>{mode=mode==='near'?'glide':'near';updChips();manualRange=false;compute()};
+function updChips(){$('uKm').classList.toggle('on',unit==='km');$('uNm').classList.toggle('on',unit==='nm');
+  $('mNear').classList.toggle('on',mode==='near');$('mGlide').classList.toggle('on',mode==='glide');}
+$('uKm').onclick=()=>{unit='km';save();updChips();renderInfo();renderList()};
+$('uNm').onclick=()=>{unit='nm';save();updChips();renderInfo();renderList()};
+$('mNear').onclick=()=>{mode='near';updChips();manualRange=false;compute()};
+$('mGlide').onclick=()=>{mode='glide';updChips();manualRange=false;compute()};
 updChips();
 /* ---- aircraft panel ---- */
 function fillAc(){
   $('acPreset').value=ac.preset;$('acName').value=ac.name;$('acF').value=ac.f;$('acV').value=ac.v;$('acM').value=ac.m;$('acRw').value=ac.rwMin||'';$('acGrass').value=String(ac.grass);$('acUnk').value=String(ac.unk);updCats();
-  $('acAlt').value=ac.alt;$('wDir').value=ac.wDir;$('wSpd').value=ac.wSpd;
+  $('acAlt').value=ac.alt;
   $('altGps').classList.toggle('on',ac.altSrc==='gps');$('altMan').classList.toggle('on',ac.altSrc==='man');
   $('acSum').textContent=ac.name+' · f'+ac.f+(ac.altSrc==='man'?' · '+ac.alt+' ft':'');
 }
 function readAc(){
   const num=(id,d)=>{const v=parseFloat($(id).value.replace(',','.'));return isFinite(v)?v:d};
   ac.name=$('acName').value.trim()||'Mon avion';ac.f=num('acF',ac.f);ac.v=num('acV',ac.v);ac.m=num('acM',0);ac.rwMin=Math.max(0,num('acRw',0));ac.grass=+$('acGrass').value;ac.unk=+$('acUnk').value;
-  ac.alt=num('acAlt',ac.alt);ac.wDir=((num('wDir',0)%360)+360)%360;ac.wSpd=Math.max(0,num('wSpd',0));
+  ac.alt=num('acAlt',ac.alt);
   saveAc();$('acSum').textContent=ac.name+' · f'+ac.f+(ac.altSrc==='man'?' · '+ac.alt+' ft':'');compute();
 }
 $('acPreset').onchange=()=>{const p=PRESETS[$('acPreset').value];ac.preset=$('acPreset').value;if(p){[ac.name,ac.f,ac.v]=p;}saveAc();fillAc();compute();};
 ['acName','acF','acV'].forEach(id=>$(id).addEventListener('input',()=>{ac.preset='custom';$('acPreset').value='custom';readAc()}));
-['acM','acAlt','wDir','wSpd','acRw'].forEach(id=>$(id).addEventListener('input',readAc));
+['acM','acAlt','acRw'].forEach(id=>$(id).addEventListener('input',readAc));
 $('acGrass').addEventListener('change',()=>{readAc();updCats()});$('acUnk').addEventListener('change',()=>{readAc();updCats()});$('acRw').addEventListener('input',updCats);
 const CATN={G:'aérodromes',C:'commerciaux',U:'ULM',P:'planeurs',H:'héliports'};
 function updCats(){
@@ -490,7 +551,7 @@ function applyLayout(){
   const autoLand=window.innerWidth>window.innerHeight*1.15&&window.innerHeight<700;
   const land=forceLand||autoLand;
   document.body.classList.toggle('land',land);
-  $('landBtn').textContent=land?'⇅ Portrait':'⇆ Paysage';
+  $('landBtn').querySelector('svg').style.transform=land?'rotate(90deg)':'';
   requestAnimationFrame(resize);
 }
 $('landBtn').onclick=async()=>{
@@ -518,7 +579,7 @@ fillAc();
 // Auto-start GPS if permission already granted
 if(navigator.permissions&&navigator.permissions.query){navigator.permissions.query({name:'geolocation'}).then(r=>{if(r.state==='granted')startGps()}).catch(()=>{})}
 setTimeout(()=>{if(!pos)showManual()},1500);
-try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').then(()=>{const el=document.getElementById('offline');if(el)el.textContent='✓ Disponible hors ligne';}).catch(()=>{})}}catch(e){}
+try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){const hadSW=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadSW)location.reload()});navigator.serviceWorker.register('sw.js').then(()=>{const el=document.getElementById('offline');if(el)el.textContent='✓ Disponible hors ligne';}).catch(()=>{})}}catch(e){}
 
 </script>
 </body>
